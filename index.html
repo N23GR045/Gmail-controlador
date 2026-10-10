@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#2563eb">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/client; frame-src https://accounts.google.com; connect-src https://gmail.googleapis.com https://oauth2.googleapis.com https://accounts.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<title>Origen del correo</title>
+<style>
+  :root { --bg:#f4f6fa; --card:#fff; --text:#141821; --muted:#667085; --line:#e4e7ec; --accent:#2563eb; --accent-soft:#e0e9ff;
+          --bar:#c7d7fe; --danger:#d92d20; --danger-soft:#fee4e2; --warn:#b54708; --warn-bg:#fef0c7; --ok-bg:#dcfae6; --ok:#067647; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0d1016; --card:#161a22; --text:#e9ebef; --muted:#98a2b3; --line:#283040; --accent:#7aa2ff; --accent-soft:#1e2a4a;
+            --bar:#2a3d6b; --danger:#f97066; --danger-soft:#3a1714; --warn:#fdb022; --warn-bg:#3a2a07; --ok-bg:#0b2e1c; --ok:#75e0a7; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  header { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 16px;
+           background:var(--card); border-bottom:1px solid var(--line); position:sticky; top:0; z-index:5; }
+  header h1 { font-size:17px; margin:0; }
+  #who { font-size:12px; color:var(--muted); }
+  main { max-width:900px; margin:0 auto; padding:14px 14px 90px; }
+  .muted { color:var(--muted); font-size:13px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:14px; }
+  .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .grow { flex:1; min-width:0; }
+  .kpis { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:14px; }
+  .kpi { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 14px; }
+  .kpi b { display:block; font-size:24px; margin-top:2px; }
+  .kpi.alert b { color:var(--warn); }
+  h2 { font-size:15px; margin:0 0 10px; }
+  .item { display:flex; gap:10px; align-items:center; padding:10px 0; border-top:1px solid var(--line); }
+  .item:first-child { border-top:0; }
+  .who { font-weight:600; word-break:break-all; }
+  .bar { height:6px; background:var(--bar); border-radius:3px; margin-top:5px; }
+  .acts { display:flex; flex-direction:column; gap:6px; }
+  .acts .btn { width:100%; }
+  .count { font-variant-numeric:tabular-nums; font-weight:600; min-width:34px; text-align:right; }
+  .tag { display:inline-block; font-size:11px; padding:1px 7px; border-radius:999px; margin:4px 4px 0 0; }
+  .tag.warn { background:var(--warn-bg); color:var(--warn); } .tag.ok { background:var(--ok-bg); color:var(--ok); }
+  .tag.info { background:var(--accent-soft); color:var(--accent); }
+  .btn { border:1px solid var(--line); background:var(--card); color:var(--text); padding:8px 12px; border-radius:10px;
+         cursor:pointer; font:inherit; font-size:14px; white-space:nowrap; }
+  .btn.sm { padding:5px 10px; font-size:13px; }
+  .btn.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .btn.danger { border-color:var(--danger); color:var(--danger); }
+  .btn.ghost { border-color:transparent; color:var(--accent); }
+  .btn:disabled { opacity:.5; }
+  input, select { font:inherit; padding:9px 10px; border-radius:10px; border:1px solid var(--line); background:var(--card); color:var(--text); }
+  input { width:100%; }
+  .center { text-align:center; padding:32px 18px; }
+  .tabs { position:fixed; bottom:0; left:0; right:0; display:flex; background:var(--card); border-top:1px solid var(--line); z-index:5;
+          padding-bottom:env(safe-area-inset-bottom); }
+  .tabs button { flex:1; border:0; background:none; color:var(--muted); font:inherit; font-size:12px; padding:8px 0 10px; cursor:pointer; }
+  .tabs button span { display:block; font-size:19px; }
+  .tabs button.on { color:var(--accent); font-weight:600; }
+  .banner { background:var(--accent-soft); color:var(--accent); border-radius:12px; padding:10px 14px; margin-bottom:14px; font-size:14px; }
+  .progress { height:4px; background:var(--line); border-radius:2px; overflow:hidden; margin-top:8px; }
+  .progress i { display:block; height:100%; width:0; background:var(--accent); transition:width .3s; }
+  details { border-top:1px solid var(--line); padding:10px 0; } details:first-of-type { border-top:0; }
+  summary { cursor:pointer; font-weight:600; }
+  code { font-size:12px; word-break:break-all; background:var(--bg); padding:1px 5px; border-radius:5px; }
+  .empty { text-align:center; padding:24px 8px; color:var(--muted); }
+  #toast { position:fixed; bottom:84px; left:50%; transform:translateX(-50%); background:var(--text); color:var(--bg);
+           padding:10px 16px; border-radius:10px; font-size:14px; opacity:0; transition:opacity .2s; pointer-events:none; max-width:90vw; z-index:9; }
+  #toast.show { opacity:1; }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<header>
+  <div><h1>📬 Origen del correo</h1><div id="who"></div></div>
+  <button id="logout" class="btn sm" hidden>Salir</button>
+</header>
+
+<main>
+  <!-- ============ Configuración inicial ============ -->
+  <section id="v-setup" hidden>
+    <div class="card">
+      <h2>Configuración inicial (solo una vez)</h2>
+      <p class="muted">Pega el <b>ID de cliente</b> de Google Cloud. Termina en <code>.apps.googleusercontent.com</code>.</p>
+      <input id="clientId" placeholder="123456-abc.apps.googleusercontent.com" autocomplete="off" spellcheck="false">
+      <p class="row"><button id="saveClient" class="btn primary">Guardar</button>
+        <button class="btn ghost" data-demo>Ver demostración</button></p>
+    </div>
+    <div class="card">
+      <h2>Datos para Google Cloud</h2>
+      <p class="muted">Origen de JavaScript autorizado (cópialo tal cual):</p>
+      <p><code class="origin"></code> <button class="btn sm" data-copy-origin>Copiar</button></p>
+    </div>
+  </section>
+
+  <!-- ============ Conectar ============ -->
+  <section id="v-login" hidden>
+    <div class="card center">
+      <h2>Conecta tu Gmail</h2>
+      <p class="muted">Solo se leen cabeceras (remitente, servidores, autenticación), nunca el contenido.
+        La sesión dura 1 hora y no se guarda ninguna contraseña.</p>
+      <p id="login-msg" class="muted"></p>
+      <button id="connect" class="btn primary">Conectar con Google</button>
+      <p><button class="btn ghost" data-demo>Ver demostración</button></p>
+    </div>
+    <div class="card">
+      <h2>¿Problemas al conectar?</h2>
+      <details><summary>Error 400: origin_mismatch</summary>
+        <p class="muted">En Google Cloud → Clientes → tu cliente → <b>Orígenes de JavaScript autorizados</b> pon exactamente
+        <code class="origin"></code>, guarda y espera 5 minutos.</p></details>
+      <details><summary>Error 403: access_denied</summary>
+        <p class="muted">Google Auth Platform → <b>Público</b> → <b>Usuarios de prueba</b> → añade el Gmail con el que entras.
+        Comprueba que estás en el mismo proyecto donde creaste el ID.</p></details>
+      <details><summary>“Google no ha verificado esta app”</summary>
+        <p class="muted">Es normal: la app es tuya. Toca <b>Configuración avanzada</b> → <b>Ir a… (no seguro)</b> y marca las dos casillas.</p></details>
+      <details><summary>Permiso para archivar</summary>
+        <p class="muted">La primera vez que pulses <b>Archivar</b>, Google pedirá un permiso extra para organizar tus correos.
+        En Google Cloud → <b>Acceso a datos</b> añade también <code>gmail.modify</code>. La app solo lo usa para sacar correos de la bandeja de entrada.</p></details>
+      <details><summary>No se abre la ventana de Google</summary>
+        <p class="muted">Chrome bloqueó la ventana emergente. Permite ventanas emergentes para este sitio y vuelve a tocar Conectar.</p></details>
+      <p><button id="resetClient" class="btn sm">Cambiar ID de cliente</button></p>
+    </div>
+  </section>
+
+  <!-- ============ Panel ============ -->
+  <section id="v-app" hidden>
+    <div id="demo-banner" class="banner" hidden>👀 Modo demostración: datos inventados. Bloquear y archivar no afecta a ningún Gmail.</div>
+
+    <div class="card">
+      <div class="row">
+        <select id="limit" class="grow">
+          <option value="100">Últimos 100 correos</option>
+          <option value="300" selected>Últimos 300 correos</option>
+          <option value="1000">Últimos 1000 correos</option>
+        </select>
+        <button id="refresh" class="btn primary">Analizar</button>
+      </div>
+      <div id="status" class="muted" style="margin-top:8px"></div>
+      <div id="progress" class="progress" hidden><i></i></div>
+    </div>
+
+    <!-- Pestaña Resumen -->
+    <div id="t-home">
+      <div id="kpis" class="kpis"></div>
+      <div class="card"><h2>Top 5 dominios</h2><div id="top5"></div></div>
+      <div class="card"><h2>⚠ Sospechosos (fallan SPF/DKIM/DMARC)</h2><div id="suspects"></div></div>
+    </div>
+
+    <!-- Pestaña Dominios / Remitentes -->
+    <div id="t-list" hidden>
+      <div class="card">
+        <input id="search" placeholder="Buscar dominio o remitente…" autocomplete="off">
+        <div class="row" style="margin-top:10px">
+          <span class="muted">Al bloquear:</span>
+          <select id="action" class="grow">
+            <option value="trash">Enviar a la papelera</option>
+            <option value="archive">Archivar y marcar leído</option>
+          </select>
+        </div>
+      </div>
+      <div class="card"><h2 id="list-title"></h2><div id="list"></div></div>
+    </div>
+
+    <!-- Pestaña Bloqueados -->
+    <div id="t-blocked" hidden>
+      <div class="card">
+        <h2>Bloqueos activos</h2>
+        <p class="muted">Filtros de tu Gmail que afectan a un remitente o dominio. También los ves en Gmail → Configuración → Filtros.</p>
+        <div id="blocked"></div>
+      </div>
+      <div class="card">
+        <h2>Bloquear manualmente</h2>
+        <div class="row"><input id="manual" class="grow" placeholder="spam@ejemplo.com o ejemplo.com" autocomplete="off">
+          <button id="manualBtn" class="btn danger">Bloquear</button></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<nav id="tabs" class="tabs" hidden>
+  <button data-tab="home" class="on"><span>📊</span>Resumen</button>
+  <button data-tab="domains"><span>🌐</span>Dominios</button>
+  <button data-tab="senders"><span>👤</span>Remitentes</button>
+  <button data-tab="blocked"><span>🚫</span>Bloqueados</button>
+</nav>
+<div id="toast"></div>
+
+<script src="https://accounts.google.com/gsi/client" async></script>
+<script>
+"use strict";
+/* =======================================================================
+   Gmail Origin Inspector — versión navegador (sin servidor)
+   - OAuth con Google Identity Services: token SOLO en memoria, caduca en 1 h.
+   - Scopes mínimos: gmail.metadata + gmail.settings.basic.
+   ======================================================================= */
+const AUTOSTART_DEMO = false; // la vista previa lo pone a true
+const SCOPE_META = "https://www.googleapis.com/auth/gmail.metadata";
+const SCOPE_FILTERS = "https://www.googleapis.com/auth/gmail.settings.basic";
+// Solo se pide la primera vez que el usuario pulsa "Archivar" (permiso incremental).
+const SCOPE_MODIFY = "https://www.googleapis.com/auth/gmail.modify";
+const API = "https://gmail.googleapis.com/gmail/v1/users/me";
+const HEADERS = ["From", "Received", "Received-SPF", "Authentication-Results"];
+const CONCURRENCY = 10;
+const CLIENT_KEY = "goi.clientId";
+
+const $ = (id) => document.getElementById(id);
+const $$ = (sel) => document.querySelectorAll(sel);
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+const state = { token: null, tokenExp: 0, demo: false, analysis: null, filters: [], tab: "home", busy: false, canModify: false };
+let tokenClient = null;
+
+/* ----------------------------- UI básica ----------------------------- */
+function toast(msg) {
+  const t = $("toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 3500);
+}
+function view(name) {
+  for (const v of ["setup", "login", "app"]) $("v-" + v).hidden = v !== name;
+  $("tabs").hidden = name !== "app";
+  $("logout").hidden = name !== "app";
+  $("logout").textContent = state.demo ? "Salir de la demo" : "Salir";
+}
+function store(k, v) { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch {} }
+function load(k) { try { return localStorage.getItem(k); } catch { return null; } }
+function progress(done, total) {
+  $("progress").hidden = !total;
+  if (total) $("progress").firstElementChild.style.width = `${Math.round((done / total) * 100)}%`;
+}
+
+/* ------------------------------- OAuth ------------------------------- */
+function initAuth(clientId) {
+  tokenClient = google.accounts.oauth2.initTokenClient({ client_id: clientId, scope: `${SCOPE_META} ${SCOPE_FILTERS}`, callback: () => {} });
+}
+function requestToken(withModify = false) {
+  return new Promise((resolve, reject) => {
+    if (!tokenClient) return reject(new Error("No se pudo cargar el inicio de sesión de Google. Revisa tu conexión y recarga."));
+    tokenClient.callback = (resp) => {
+      if (resp.error) return reject(new Error(resp.error === "access_denied" ? "Acceso denegado. Revisa los usuarios de prueba (ver ayuda)." : resp.error));
+      if (!google.accounts.oauth2.hasGrantedAllScopes(resp, SCOPE_META, SCOPE_FILTERS))
+        return reject(new Error("Debes marcar las casillas de permisos."));
+      if (withModify && !google.accounts.oauth2.hasGrantedAllScopes(resp, SCOPE_MODIFY))
+        return reject(new Error("Para archivar debes marcar el permiso de organizar tus correos."));
+      state.token = resp.access_token;
+      state.tokenExp = Date.now() + (resp.expires_in - 60) * 1000;
+      state.canModify = google.accounts.oauth2.hasGrantedAllScopes(resp, SCOPE_MODIFY);
+      resolve();
+    };
+    tokenClient.error_callback = (e) =>
+      reject(new Error(e.type === "popup_closed" ? "Has cerrado la ventana de Google." :
+                       e.type === "popup_failed_to_open" ? "Chrome bloqueó la ventana. Permite ventanas emergentes." : e.message || e.type));
+    const scopes = [SCOPE_META, SCOPE_FILTERS, ...(withModify ? [SCOPE_MODIFY] : [])].join(" ");
+    tokenClient.requestAccessToken({ scope: scopes });
+  });
+}
+function ensureModify() {
+  if (state.demo || state.canModify) return Promise.resolve();
+  return requestToken(true); // se llama sin await previo para conservar el gesto del usuario
+}
+class AuthError extends Error {}
+function needLogin(msg) {
+  Object.assign(state, { token: null, analysis: null, filters: [], demo: false, canModify: false });
+  $("login-msg").textContent = msg || "";
+  view(load(CLIENT_KEY) ? "login" : "setup");
+}
+
+/* -------------------------- Llamadas a Gmail ------------------------- */
+async function g(path, opts = {}, tries = 5) {
+  if (!state.token || Date.now() > state.tokenExp) { needLogin("La sesión dura 1 hora. Vuelve a conectar."); throw new AuthError(); }
+  for (let i = 0; i < tries; i++) {
+    const r = await fetch(API + path, { ...opts, headers: { Authorization: `Bearer ${state.token}`, "Content-Type": "application/json" } });
+    if (r.status === 401) { needLogin("Sesión caducada. Vuelve a conectar."); throw new AuthError(); }
+    const body = r.status === 204 ? "" : await r.text();
+    if (r.status === 429 || r.status >= 500 || (r.status === 403 && body.includes("ateLimitExceeded"))) {
+      await sleep(Math.min(2 ** i, 32) * 1000 + Math.random() * 1000); continue;
+    }
+    const json = body ? JSON.parse(body) : {};
+    if (!r.ok) throw new Error(json.error?.message || `Error ${r.status}`);
+    return json;
+  }
+  throw new Error("Gmail está limitando las peticiones; prueba en un minuto.");
+}
+async function listIds(limit) {
+  const ids = []; let page = "";
+  while (ids.length < limit) {
+    const q = new URLSearchParams({ labelIds: "INBOX", maxResults: String(Math.min(500, limit - ids.length)) });
+    if (page) q.set("pageToken", page);
+    const r = await g(`/messages?${q}`);
+    for (const m of r.messages || []) ids.push(m.id);
+    if (!(page = r.nextPageToken)) break;
+  }
+  return ids;
+}
+async function fetchMetadata(ids) {
+  const q = new URLSearchParams({ format: "metadata" });
+  HEADERS.forEach((h) => q.append("metadataHeaders", h));
+  const out = []; let next = 0, done = 0;
+  async function worker() {
+    while (next < ids.length) {
+      const id = ids[next++];
+      try { out.push(await g(`/messages/${encodeURIComponent(id)}?${q}`)); }
+      catch (e) { if (e instanceof AuthError) throw e; }
+      done++;
+      if (done % 5 === 0 || done === ids.length) { $("status").textContent = `Leyendo cabeceras… ${done} de ${ids.length}`; progress(done, ids.length); }
+    }
+  }
+  await Promise.all(Array.from({ length: CONCURRENCY }, worker));
+  return out;
+}
+async function loadFilters() {
+  if (state.demo) return;
+  const r = await g("/settings/filters");
+  state.filters = (r.filter || []).filter((f) => f.criteria?.from).map((f) => ({
+    id: f.id, from: f.criteria.from.toLowerCase(),
+    action: (f.action?.addLabelIds || []).includes("TRASH") ? "trash" : (f.action?.removeLabelIds || []).includes("INBOX") ? "archive" : "other",
+  }));
+}
+
+/* ----------------------- Análisis de cabeceras ----------------------- */
+const RECEIVED_FROM = /from\s+(\S+)[\s\S]*?\[([0-9a-fA-F.:]+)\]/;
+const CLIENT_IP = /client-ip=([0-9a-fA-F.:]+)/;
+const AUTH_RESULT = /\b(spf|dkim|dmarc)=(\w+)/gi;
+const AUTH_FAIL = new Set(["fail", "softfail", "permerror", "temperror", "none"]);
+
+function isPublicIp(ip) {
+  if (ip.includes(":")) return !/^(::1|fe80:|fc|fd)/i.test(ip);
+  const p = ip.split(".").map(Number);
+  if (p.length !== 4 || p.some((n) => !(n >= 0 && n <= 255))) return false;
+  return !(p[0] === 10 || p[0] === 127 || p[0] === 0 || (p[0] === 192 && p[1] === 168) ||
+           (p[0] === 172 && p[1] >= 16 && p[1] <= 31) || (p[0] === 169 && p[1] === 254) || (p[0] === 100 && p[1] >= 64 && p[1] <= 127));
+}
+function headersOf(msg) {
+  const h = {};
+  for (const { name, value } of msg.payload?.headers || []) (h[name.toLowerCase()] ||= []).push(value);
+  return h;
+}
+function parseFrom(v) {
+  const m = /^\s*"?(.*?)"?\s*<([^>]+)>\s*$/.exec(v || "");
+  return m ? { name: m[1].trim(), addr: m[2].trim().toLowerCase() } : { name: "", addr: (v || "").trim().toLowerCase() };
+}
+function originIp(h) {
+  for (const v of h.received || []) if (v.includes("mx.google.com")) { const m = RECEIVED_FROM.exec(v); if (m && isPublicIp(m[2])) return m[2]; }
+  for (const v of h["received-spf"] || []) { const m = CLIENT_IP.exec(v); if (m && isPublicIp(m[1])) return m[1]; }
+  return null;
+}
+function authFails(h) {
+  const first = (h["authentication-results"] || [""])[0]; // la que añade Google al recibir
+  const failed = [];
+  for (const [, k, v] of first.matchAll(AUTH_RESULT)) if (AUTH_FAIL.has(v.toLowerCase())) failed.push(k.toUpperCase());
+  return failed;
+}
+function analyze(msgs) {
+  const senders = new Map(), domains = new Map();
+  for (const msg of msgs) {
+    const h = headersOf(msg);
+    const { name, addr } = parseFrom((h.from || [""])[0]);
+    if (!addr.includes("@")) continue;
+    const domain = addr.split("@").pop();
+    const s = senders.get(addr) || { email: addr, name: "", domain, count: 0, ids: [] };
+    s.count++; s.ids.push(msg.id); if (name) s.name = name; senders.set(addr, s);
+    const d = domains.get(domain) || { domain, count: 0, ids: [], ips: new Map(), authFail: 0, failKinds: new Set(), senders: new Set() };
+    d.count++; d.ids.push(msg.id); d.senders.add(addr);
+    const ip = originIp(h); if (ip) d.ips.set(ip, (d.ips.get(ip) || 0) + 1);
+    const f = authFails(h); if (f.length) { d.authFail++; f.forEach((k) => d.failKinds.add(k)); }
+    domains.set(domain, d);
+  }
+  const sorted = (m) => [...m.values()].sort((a, b) => b.count - a.count);
+  return {
+    analyzed: msgs.length, at: Date.now(),
+    senders: sorted(senders).slice(0, 100),
+    domains: sorted(domains).slice(0, 100).map((d) => ({
+      domain: d.domain, count: d.count, ids: d.ids, authFail: d.authFail, failKinds: [...d.failKinds], senderCount: d.senders.size,
+      ips: [...d.ips].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([ip]) => ip),
+    })),
+    uniqueSenders: senders.size, uniqueDomains: domains.size,
+  };
+}
+
+/* ------------------------------ Render ------------------------------- */
+const filterFor = (from) => state.filters.find((f) => f.from === from);
+const domFilter = (d) => filterFor("@" + d) || filterFor(d);
+const ACTION_LABEL = { trash: "→ papelera", archive: "→ archivado", other: "filtro" };
+
+function blockBtn(target, f, archiveKey) {
+  const block = f ? `<button class="btn sm" data-unblock="${esc(f.id)}">Quitar</button>`
+                  : `<button class="btn sm danger" data-block="${esc(target)}">Bloquear</button>`;
+  const arch = archiveKey ? `<button class="btn sm" data-archive="${esc(archiveKey)}">📦 Archivar</button>` : "";
+  return `<div class="acts">${block}${arch}</div>`;
+}
+function domainItem(d, max) {
+  const f = domFilter(d.domain);
+  return `<div class="item"><div class="grow">
+      <div class="who">${esc(d.domain)}</div>
+      <div class="muted">${d.senderCount} remitente${d.senderCount > 1 ? "s" : ""}${d.ips.length ? " · IP " + d.ips.map(esc).join(", ") : ""}</div>
+      ${f ? `<span class="tag ok">Bloqueado ${ACTION_LABEL[f.action]}</span>` : ""}
+      ${d.authFail ? `<span class="tag warn">⚠ ${d.authFail} sin autenticar (${d.failKinds.map(esc).join(", ")})</span>` : ""}
+      <div class="bar" style="width:${(d.count / max) * 100}%"></div></div>
+    <div class="count">${d.count}</div>${blockBtn(d.domain, f, "d:" + d.domain)}</div>`;
+}
+function senderItem(s, max) {
+  const f = filterFor(s.email), df = domFilter(s.domain);
+  return `<div class="item"><div class="grow">
+      <div class="who">${esc(s.name || s.email)}</div>
+      ${s.name ? `<div class="muted">${esc(s.email)}</div>` : ""}
+      ${f ? `<span class="tag ok">Bloqueado ${ACTION_LABEL[f.action]}</span>` : ""}
+      ${df ? `<span class="tag info">dominio bloqueado</span>` : ""}
+      <div class="bar" style="width:${(s.count / max) * 100}%"></div></div>
+    <div class="count">${s.count}</div>${blockBtn(s.email, f, "s:" + s.email)}</div>`;
+}
+const empty = (msg) => `<div class="empty">${msg}</div>`;
+
+function render() {
+  const a = state.analysis;
+  if (!a) {
+    for (const id of ["kpis", "top5", "suspects", "list"]) $(id).innerHTML = "";
+    $("top5").innerHTML = empty("Pulsa <b>Analizar</b> para empezar.");
+  } else {
+    const suspects = a.domains.filter((d) => d.authFail);
+    $("kpis").innerHTML = [["Correos analizados", a.analyzed, ""], ["Remitentes", a.uniqueSenders, ""],
+      ["Dominios", a.uniqueDomains, ""], ["Sospechosos", suspects.length, suspects.length ? "alert" : ""]]
+      .map(([k, v, c]) => `<div class="kpi ${c}"><span class="muted">${k}</span><b>${v}</b></div>`).join("");
+    const maxD = Math.max(1, ...a.domains.map((d) => d.count));
+    $("top5").innerHTML = a.domains.slice(0, 5).map((d) => domainItem(d, maxD)).join("") || empty("Sin datos");
+    const nSus = suspects.reduce((n, d) => n + d.ids.length, 0);
+    $("suspects").innerHTML = suspects.length
+      ? suspects.slice(0, 10).map((d) => domainItem(d, maxD)).join("") +
+        `<p><button class="btn" style="width:100%" data-archive="x:suspects">📦 Archivar los ${nSus} correos sospechosos</button></p>`
+      : empty("✅ Ningún dominio sospechoso");
+
+    if (state.tab === "domains" || state.tab === "senders") {
+      const q = $("search").value.trim().toLowerCase();
+      const isDom = state.tab === "domains";
+      const items = (isDom ? a.domains : a.senders).filter((x) => !q || (isDom ? x.domain : `${x.email} ${x.name}`.toLowerCase()).includes(q));
+      const max = Math.max(1, ...items.map((x) => x.count));
+      $("list-title").textContent = isDom ? `Dominios (${items.length})` : `Remitentes (${items.length})`;
+      $("list").innerHTML = items.slice(0, 60).map((x) => isDom ? domainItem(x, max) : senderItem(x, max)).join("") || empty("Nada coincide con la búsqueda");
+    }
+    $("status").textContent = `${state.demo ? "Demostración · " : ""}Datos de las ${new Date(a.at).toLocaleTimeString().slice(0, 5)}`;
+  }
+  $("blocked").innerHTML = state.filters.map((f) => `<div class="item"><div class="grow">
+      <div class="who">${esc(f.from)}</div><span class="tag ok">${f.from.startsWith("@") ? "Dominio" : "Remitente"} ${ACTION_LABEL[f.action]}</span></div>
+      <button class="btn sm" data-unblock="${esc(f.id)}">Quitar</button></div>`).join("")
+    || empty("Todavía no has bloqueado a nadie.");
+}
+
+function setTab(tab) {
+  state.tab = tab;
+  $$("#tabs button").forEach((b) => b.classList.toggle("on", b.dataset.tab === tab));
+  $("t-home").hidden = tab !== "home";
+  $("t-list").hidden = tab !== "domains" && tab !== "senders";
+  $("t-blocked").hidden = tab !== "blocked";
+  $("search").value = "";
+  render();
+  window.scrollTo(0, 0);
+}
+
+async function runAnalysis() {
+  if (state.busy) return;
+  state.busy = true; $("refresh").disabled = true;
+  $("status").textContent = "Buscando correos…";
+  try {
+    if (state.demo) {
+      for (let i = 1; i <= 10; i++) { await sleep(90); progress(i, 10); $("status").textContent = `Leyendo cabeceras… ${i * 30} de 300`; }
+      state.analysis = demoAnalysis();
+    } else {
+      const ids = await listIds(Number($("limit").value));
+      if (!ids.length) { state.analysis = analyze([]); }
+      else state.analysis = analyze(await fetchMetadata(ids));
+      await loadFilters();
+    }
+    render();
+  } catch (e) { if (!(e instanceof AuthError)) { $("status").textContent = ""; toast(e.message); } }
+  finally { state.busy = false; $("refresh").disabled = false; progress(0, 0); }
+}
+
+/* ------------------------------ Bloqueo ------------------------------ */
+const EMAIL_RE = /^[^@\s"()<>,;:\\]+@[a-z0-9.-]+\.[a-z]{2,}$/;
+const DOMAIN_RE = /^(?=.{1,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/;
+const ACTIONS = { trash: { addLabelIds: ["TRASH"] }, archive: { removeLabelIds: ["INBOX", "UNREAD"] } };
+
+async function block(raw) {
+  const target = raw.trim().toLowerCase().replace(/^@/, "");
+  if (!EMAIL_RE.test(target) && !DOMAIN_RE.test(target)) throw new Error("Escribe un email o un dominio válido.");
+  const from = target.includes("@") ? target : "@" + target;
+  const action = $("action").value;
+  const what = from.startsWith("@") ? `todo el dominio ${from.slice(1)}` : from;
+  if (!confirm(`Todo lo nuevo de\n\n${what}\n\nse ${action === "trash" ? "enviará a la papelera" : "archivará"}. ¿Continuar?`)) return false;
+  if (state.demo) {
+    if (filterFor(from)) throw new Error("Ya está bloqueado.");
+    state.filters.push({ id: "demo" + Date.now(), from, action });
+  } else {
+    await loadFilters();
+    if (filterFor(from)) throw new Error("Ya existe un filtro para ese remitente.");
+    await g("/settings/filters", { method: "POST", body: JSON.stringify({ criteria: { from }, action: ACTIONS[action] }) });
+    await loadFilters();
+  }
+  toast(`🚫 Bloqueado: ${from}`);
+  return true;
+}
+async function unblock(id) {
+  if (state.demo) state.filters = state.filters.filter((f) => f.id !== id);
+  else {
+    if (!/^[A-Za-z0-9_-]{1,128}$/.test(id)) throw new Error("Filtro no válido");
+    await g(`/settings/filters/${id}`, { method: "DELETE" });
+    await loadFilters();
+  }
+  toast("Bloqueo quitado");
+}
+
+/* ----------------------------- Archivado ----------------------------- */
+// Quita la etiqueta INBOX (lo mismo que el botón "Archivar" de Gmail). Los correos
+// siguen en "Todos" y se pueden recuperar; no se borra nada.
+function idsFor(key) {
+  const a = state.analysis; if (!a) return { ids: [], label: "" };
+  const [kind, val] = [key.slice(0, 1), key.slice(2)];
+  if (kind === "d") { const d = a.domains.find((x) => x.domain === val); return { ids: d?.ids || [], label: `del dominio ${val}` }; }
+  if (kind === "s") { const s = a.senders.find((x) => x.email === val); return { ids: s?.ids || [], label: `de ${val}` }; }
+  const ids = a.domains.filter((d) => d.authFail).flatMap((d) => d.ids);
+  return { ids, label: "de los dominios sospechosos" };
+}
+function removeFromAnalysis(idSet) {
+  const a = state.analysis;
+  for (const s of a.senders) {
+    const before = s.ids.length;
+    s.ids = s.ids.filter((id) => !idSet.has(id)); s.count = s.ids.length;
+    if (before && !s.count) { const d = a.domains.find((x) => x.domain === s.domain); if (d) d.senderCount = Math.max(0, d.senderCount - 1); }
+  }
+  for (const d of a.domains) {
+    d.ids = d.ids.filter((id) => !idSet.has(id)); d.count = d.ids.length; d.authFail = Math.min(d.authFail, d.count);
+  }
+  a.senders = a.senders.filter((s) => s.count).sort((x, y) => y.count - x.count);
+  a.domains = a.domains.filter((d) => d.count).sort((x, y) => y.count - x.count);
+  a.analyzed = Math.max(0, a.analyzed - idSet.size);
+  a.uniqueSenders = a.senders.length; a.uniqueDomains = a.domains.length;
+}
+async function archiveIds(ids) {
+  if (!state.demo) for (let i = 0; i < ids.length; i += 1000) {
+    await g("/messages/batchModify", { method: "POST", body: JSON.stringify({ ids: ids.slice(i, i + 1000), removeLabelIds: ["INBOX"] }) });
+    $("status").textContent = `Archivando… ${Math.min(i + 1000, ids.length)} de ${ids.length}`;
+  }
+  removeFromAnalysis(new Set(ids));
+  toast(`📦 ${ids.length} correo${ids.length > 1 ? "s" : ""} archivado${ids.length > 1 ? "s" : ""}`);
+}
+async function archive(key) {
+  const { ids, label } = idsFor(key);
+  if (!ids.length) throw new Error("No hay correos que archivar.");
+  const permiso = ensureModify(); // primero: si hace falta, abre la ventana de Google dentro del toque
+  await permiso;
+  if (!confirm(`¿Archivar ${ids.length} correo${ids.length > 1 ? "s" : ""} ${label}?\n\nSaldrán de la bandeja de entrada pero seguirán en "Todos" de Gmail. No se borra nada.`)) return;
+  await archiveIds(ids);
+}
+
+document.addEventListener("click", async (ev) => {
+  const b = ev.target.closest("button[data-block],button[data-unblock],button[data-archive]"); if (!b) return;
+  b.disabled = true;
+  try {
+    if (b.dataset.archive) await archive(b.dataset.archive);
+    else if (b.dataset.block) {
+      const target = b.dataset.block;
+      if (await block(target)) {
+        // Ofrecer archivar también los que ya están en la bandeja (si ya hay permiso, para no abrir ventanas sin un toque)
+        const { ids } = idsFor((target.includes("@") ? "s:" : "d:") + target);
+        if (ids.length && (state.demo || state.canModify) &&
+            confirm(`Bloqueado. ¿Archivar también los ${ids.length} correos que ya tienes de ${target}?`)) await archiveIds(ids);
+      }
+    } else await unblock(b.dataset.unblock);
+    render();
+  } catch (e) { if (!(e instanceof AuthError)) toast(e.message); }
+  b.disabled = false;
+});
+
+/* ---------------------------- Demostración --------------------------- */
+function demoAnalysis() {
+  const D = [
+    ["amazon.es", 41, 2, ["52.95.48.10"], 0, [], [["Amazon.es", "pedidos"], ["Amazon.es", "envios"]]],
+    ["mail.instagram.com", 33, 1, ["69.171.232.140"], 0, [], [["Instagram", "no-reply"]]],
+    ["promo-ofertas24.xyz", 28, 3, ["185.234.219.17"], 28, ["SPF", "DMARC"], [["¡Ofertas Flash!", "info"], ["Premio Especial", "ganador"], ["Descuentos VIP", "news"]]],
+    ["linkedin.com", 24, 2, ["108.174.3.12"], 0, [], [["LinkedIn", "messages-noreply"], ["LinkedIn Jobs", "jobs-noreply"]]],
+    ["news.zara.com", 19, 1, ["198.2.180.21"], 0, [], [["ZARA", "newsletter"]]],
+    ["bbva.es", 15, 1, ["195.235.92.30"], 0, [], [["BBVA", "notificaciones"]]],
+    ["seguridad-banco-verify.com", 11, 2, ["45.153.160.2"], 11, ["SPF", "DKIM", "DMARC"], [["Banco - Seguridad", "alerta"], ["Soporte Cuenta", "verify"]]],
+    ["gmail.com", 10, 4, ["209.85.220.41"], 0, [], [["Laura Martín", "laura.martin"], ["Carlos", "carlos.r"], ["Mamá", "ana.lopez"], ["Pedro", "pedrog"]]],
+    ["mailchimp-list.net", 9, 1, ["198.2.137.50"], 2, ["DKIM"], [["Club de Viajes", "club"]]],
+    ["renfe.com", 8, 1, ["193.146.141.8"], 0, [], [["Renfe", "venta"]]],
+    ["temu.com", 8, 1, ["47.88.24.6"], 0, [], [["Temu", "marketing"]]],
+    ["crypto-gana-ya.top", 6, 2, ["91.92.250.4"], 6, ["SPF", "DKIM"], [["Inversión Segura", "money"], ["Bitcoin Bot", "bot"]]],
+  ];
+  const domains = [], senders = [];
+  for (const [domain, count, senderCount, ips, authFail, failKinds, ss] of D) {
+    const dIds = [];
+    ss.forEach(([name, user], i) => {
+      const n = Math.floor(count / ss.length) + (i === 0 ? count % ss.length : 0);
+      const ids = Array.from({ length: n }, (_, k) => `${user}@${domain}#${k}`);
+      dIds.push(...ids);
+      senders.push({ email: `${user}@${domain}`, name, domain, count: n, ids });
+    });
+    domains.push({ domain, count, senderCount, ips, authFail, failKinds, ids: dIds });
+  }
+  senders.sort((a, b) => b.count - a.count);
+  const analyzed = domains.reduce((n, d) => n + d.count, 0);
+  return { analyzed, at: Date.now(), domains, senders, uniqueSenders: senders.length, uniqueDomains: domains.length };
+}
+function startDemo() {
+  Object.assign(state, { demo: true, analysis: null, filters: [{ id: "demo1", from: "@temu.com", action: "archive" }] });
+  $("demo-banner").hidden = false; $("who").textContent = "demo@gmail.com";
+  view("app"); setTab("home"); runAnalysis();
+}
+
+/* ------------------------------ Arranque ----------------------------- */
+$$(".origin").forEach((el) => (el.textContent = location.origin));
+$$("[data-demo]").forEach((b) => (b.onclick = startDemo));
+$$("[data-copy-origin]").forEach((b) => (b.onclick = () =>
+  navigator.clipboard?.writeText(location.origin).then(() => toast("Copiado"), () => toast("Mantén pulsado el texto para copiarlo"))));
+$$("#tabs button").forEach((b) => (b.onclick = () => setTab(b.dataset.tab)));
+$("search").addEventListener("input", render);
+$("refresh").onclick = runAnalysis;
+$("manualBtn").onclick = async () => {
+  try { if (await block($("manual").value)) { $("manual").value = ""; render(); } } catch (e) { if (!(e instanceof AuthError)) toast(e.message); }
+};
+$("saveClient").onclick = () => {
+  const id = $("clientId").value.trim();
+  if (id.startsWith("GOCSPX-")) return toast("Eso es el secreto del cliente. Copia el ID de cliente.");
+  if (!/^[0-9]+-[a-z0-9]+\.apps\.googleusercontent\.com$/.test(id)) return toast("Ese no parece un ID de cliente válido.");
+  store(CLIENT_KEY, id); boot();
+};
+$("resetClient").onclick = () => { store(CLIENT_KEY, null); $("clientId").value = ""; view("setup"); };
+$("connect").onclick = async () => {
+  $("connect").disabled = true;
+  try {
+    await requestToken();
+    state.demo = false; $("demo-banner").hidden = true;
+    const p = await g("/profile"); $("who").textContent = p.emailAddress || "";
+    view("app"); setTab("home"); runAnalysis();
+  } catch (e) { if (!(e instanceof AuthError)) $("login-msg").textContent = e.message; }
+  $("connect").disabled = false;
+};
+$("logout").onclick = () => {
+  if (state.token) try { google.accounts.oauth2.revoke(state.token, () => {}); } catch {}
+  const wasDemo = state.demo;
+  $("demo-banner").hidden = true; $("who").textContent = "";
+  needLogin(wasDemo ? "" : "Sesión cerrada y acceso revocado.");
+};
+
+function boot() {
+  const id = load(CLIENT_KEY);
+  if (!id) return view("setup");
+  view("login");
+  const go = () => { try { initAuth(id); } catch { $("login-msg").textContent = "No se pudo cargar Google. Recarga la página."; } };
+  window.google?.accounts?.oauth2 ? go() : window.addEventListener("load", go, { once: true });
+}
+if (AUTOSTART_DEMO) startDemo();
+else if (location.protocol !== "https:" && location.hostname !== "localhost") {
+  view("setup");
+  $("v-setup").insertAdjacentHTML("afterbegin", `<div class="banner">Para conectar Gmail abre esta página desde tu dirección https:// de GitHub Pages. Aquí solo funciona la demostración.</div>`);
+} else boot();
+</script>
+</body>
+</html>
